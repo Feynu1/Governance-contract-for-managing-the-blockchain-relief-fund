@@ -46,3 +46,57 @@
    (err u401) ;; Error: Only admin can call this function
  )
 )
+;; Function to update the maximum withdrawal limit
+(define-public (set-withdrawal-limit (amount uint))
+ (if (is-eq tx-sender (var-get admin))
+   (if (> amount u0)
+     (begin
+       (var-set withdrawal-limit amount)
+       (ok amount)
+     )
+     (err u403) ;; Error: Invalid withdrawal amount
+   )
+   (err u401) ;; Error: Only admin can call this function
+ )
+)
+
+
+;; Read-only function to check the current admin
+(define-read-only (get-admin)
+ (ok (var-get admin))
+)
+
+
+;; Read-only function to get the minimum donation amount
+(define-read-only (get-min-donation)
+ (ok (var-get min-donation))
+)
+
+
+;; Read-only function to get the current withdrawal limit
+(define-read-only (get-withdrawal-limit)
+ (ok (var-get withdrawal-limit))
+)
+
+
+;; =========================================
+;; RESTRICTIONS FOR DISASTER-RELIEF CONTRACT
+;; =========================================
+
+
+;; Function to validate if a donation meets the minimum requirement
+(define-public (validate-donation (amount uint))
+ (if (>= amount (var-get min-donation))
+   (ok true)
+   (err u404) ;; Error: Donation amount below minimum
+ )
+)
+
+
+;; Function to validate if a recipient can withdraw within the set limit
+(define-public (validate-withdrawal (amount uint))
+ (if (<= amount (var-get withdrawal-limit))
+   (ok true)
+   (err u405) ;; Error: Withdrawal amount exceeds limit
+ )
+)
