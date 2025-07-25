@@ -160,4 +160,40 @@
      { action: action, params: params, approvals: (list tx-sender) })
    (var-set tx-nonce (+ tx-id u1))
    (ok tx-id)))
+;; Function to get pending transaction details
+(define-read-only (get-pending-transaction (tx-id uint))
+ (map-get? pending-transactions { tx-id: tx-id }))
+
+
+;; Function to get the current transaction nonce
+(define-read-only (get-tx-nonce)
+ (ok (var-get tx-nonce)))
+
+
+;; Private function to execute a transaction
+(define-private (execute-transaction (tx-id uint))
+ (let ((tx (unwrap! (map-get? pending-transactions { tx-id: tx-id }) (err u404))))
+   ;; Implementation of execute-transaction would go here
+   ;; This would involve pattern matching on the action and calling the appropriate function
+   (map-delete pending-transactions { tx-id: tx-id })
+   (ok true)))
+
+
+;; Read-only function to check if an address is a signer
+(define-read-only (is-signer (address principal))
+ (is-some (map-get? signers address)))
+
+
+;; Read-only function to get the required number of signatures
+(define-read-only (get-required-signatures)
+ (ok (var-get required-signatures)))
+
+
+;; Function to change the required number of signatures (only callable by admin)
+(define-public (set-required-signatures (new-required uint))
+ (begin
+   (asserts! (is-eq tx-sender (var-get admin)) (err u401))
+   (asserts! (> new-required u0) (err u403))
+   (var-set required-signatures new-required)
+   (ok true)))
 
